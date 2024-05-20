@@ -1,0 +1,33 @@
+## task 1
+WITH tmp AS (
+ SELECT
+  current_date AS cur_dt,
+  (random() * 10) :: integer % 8 AS rnd_pre
+  ,row_number() over() AS rn
+ FROM
+  generate_series(1, 100) AS gen_series
+)
+SELECT
+ cur_dt + CAST(sum(CASE WHEN rn=1 THEN 0 when rnd_pre < 2 THEN 2 ELSE rnd_pre END) over(ORDER BY rn) || ' days' AS interval) AS res
+FROM
+ tmp
+
+# task 2
+WITH
+  t1 AS
+  (
+  SELECT  employee_id ,count(id) as sales_c , sum(price) as sales_s
+  FROM sales
+  GROUP BY employee_id
+  )
+SELECT
+  e.name,
+ e.id,
+  sales_c,
+  row_number()over(order by sales_c desc) as sales_rank_c ,
+  sales_s,
+  row_number()over(order by sales_s desc) as sales_rank_c
+FROM t1
+  JOIN employee e
+  ON e.id=t1.employee_id
+ORDER BY sales_c DESC, sales_s DESC
